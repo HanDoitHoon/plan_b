@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: #111827;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+table,
+th,
+td {
+  border: 1px solid #e5e7eb;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+}
