@@ -156,7 +156,7 @@ Chat GPT의 도움을 받아 필요한 기능을 생성하였고, Claude Code를
 
 --------------------------------------------------
 기술 스택
-│   영역	 │             기술
+
 │ Backend	 │ Python, FastAPI, SQLAlchemy 2.x
 │ Database │ MySQL (PyMySQL)
 │ ML	     │ scikit-learn, pandas, joblib
