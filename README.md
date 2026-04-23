@@ -166,33 +166,33 @@ ML         │ scikit-learn, pandas, joblib
 Frontend   │ React (Vite) 
 --------------------------------------------------
 
-###주요 기능 - 
+### 주요 기능 - 
 
 --------------------------------------------------
 
-###실행 방법 - (.env.example 참고하라고 안내)
-#1. .env.example 내용 수정
+### 실행 방법 - (.env.example 참고하라고 안내)
+# 1. .env.example 내용 수정
     1) DataBase password 변경!
        
-#2. backend 실행 
+# 2. backend 실행 
     1) cd backend
     2) .venv\Scripts\activate
     필요 라이브러리 설치  pip install fastapi uvicorn sqlalchemy pymysql pandas scikit-learn joblib python-dotenv python-multipart
     3) python -m uvicorn app.main:app --reload
     4) http://127.0.0.1:8000 으로 열리고, http://127.0.0.1:8000/docs 에서 API 문서를 확인할 수 있습니다.
        
-#3. frontend 실행
+# 3. frontend 실행
     1) cd frontend
     2) npm run dev
     3) http://localhost:5173 으로 열립니다.
 --------------------------------------------------
 
-###시스템 구조 - 아키텍처 다이어그램
+### 시스템 구조 - 아키텍처 다이어그램
 
 --------------------------------------------------
 
 
-###ML 모델 성능
+### ML 모델 성능
 
 Accuracy
 
