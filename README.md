@@ -164,6 +164,7 @@ Database   │ MySQL (PyMySQL)
 ML         │ scikit-learn, pandas, joblib 
 
 Frontend   │ React (Vite) 
+
 --------------------------------------------------
 
 ### 주요 기능 - 
