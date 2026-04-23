@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # plan_b — 예지보전 웹 애플리케이션
 
 AI4I 2020 데이터셋을 활용하여 설비 센서 데이터를 시각화하고,  
@@ -142,3 +143,44 @@ python -m app.ml.train --dataset-id 1
 > `dataset-id`는 업로드한 데이터셋의 ID로 변경하세요. (업로드 후 화면에서 확인 가능)
 
 ---
+=======
+# plan_b
+Plan_B
+--------------------------------------------------
+프로젝트 소개 
+
+웹앱 이해도를 늘리기 위해 **AI4I2020** Dataset을 시각화 하고 랜덤 포레스트 분류 모델(RandomForestClassifier)을 이용하여 예지보존 모델을 사용한 토이프로젝트 입니다. 
+Chat GPT의 도움을 받아 필요한 기능을 생성하였고, Claude Code를 이용하여 프로젝트를 마무리 하였습니다.
+
+데이터셋 출처 - [AI4I 2020 링크](https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset)
+--------------------------------------------------
+기술 스택
+│   영역	 │             기술
+│ Backend	 │ Python, FastAPI, SQLAlchemy 2.x
+│ Database │ MySQL (PyMySQL)
+│ ML	     │ scikit-learn, pandas, joblib
+│ Frontend │ React (Vite)
+--------------------------------------------------
+
+주요 기능 - 스크린샷과 함께
+--------------------------------------------------
+실행 방법 - (.env.example 참고하라고 안내)
+
+1. backend 실행 
+    1) cd backend
+    2) .venv\Scripts\activate
+    필요 라이브러리 설치  pip install fastapi uvicorn sqlalchemy pymysql pandas scikit-learn joblib python-dotenv python-multipart
+    3) python -m uvicorn app.main:app --reload
+    4) http://127.0.0.1:8000 으로 열리고, http://127.0.0.1:8000/docs 에서 API 문서를 확인할 수 있습니다.
+2. frontend 실행
+    1) cd frontend
+    2) npm run dev
+    3) http://localhost:5173 으로 열립니다.
+--------------------------------------------------
+시스템 구조 - 아키텍처 다이어그램
+--------------------------------------------------
+
+
+ML 모델 성능 - Accuracy, F1, ROC-AUC 수치
+
+>>>>>>> 3c32d4d (Enhance README with project details and setup instructions)
