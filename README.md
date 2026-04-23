@@ -145,7 +145,7 @@ python -m app.ml.train --dataset-id 1
 ---
 =======
 # plan_b
-Plan_B
+
 --------------------------------------------------
 프로젝트 소개 
 
@@ -153,6 +153,7 @@ Plan_B
 Chat GPT의 도움을 받아 필요한 기능을 생성하였고, Claude Code를 이용하여 프로젝트를 마무리 하였습니다.
 
 데이터셋 출처 - [AI4I 2020 링크](https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset)
+
 --------------------------------------------------
 기술 스택
 │   영역	 │             기술
