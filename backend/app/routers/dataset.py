@@ -2,6 +2,7 @@ from io import BytesIO
 
 import pandas as pd
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlalchemy import insert as sa_insert
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -9,6 +10,7 @@ from app.db_models import Dataset, MachineRecord
 
 router = APIRouter(prefix="/api/datasets", tags=["datasets"])
 
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 COLUMN_MAP = {
     "UDI": "uid",
@@ -27,6 +29,13 @@ COLUMN_MAP = {
     "RNF": "rnf",
 }
 
+_RECORD_COLS = [
+    "dataset_id", "uid", "product_id", "type",
+    "air_temperature_k", "process_temperature_k",
+    "rotational_speed_rpm", "torque_nm", "tool_wear_min",
+    "machine_failure", "twf", "hdf", "pwf", "osf", "rnf",
+]
+
 
 @router.post("/upload")
 async def upload_dataset(
@@ -38,10 +47,13 @@ async def upload_dataset(
 
     content = await file.read()
 
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="파일 크기가 50MB를 초과합니다.")
+
     try:
         df = pd.read_csv(BytesIO(content))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"CSV 읽기 실패: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=400, detail="CSV 파일을 읽을 수 없습니다.")
 
     missing_columns = [col for col in COLUMN_MAP.keys() if col not in df.columns]
     if missing_columns:
@@ -60,31 +72,15 @@ async def upload_dataset(
     db.refresh(dataset)
 
     df = df.rename(columns=COLUMN_MAP)
+
+    int_zero_cols = ["machine_failure", "twf", "hdf", "pwf", "osf", "rnf"]
+    df[int_zero_cols] = df[int_zero_cols].fillna(0).astype(int)
     df = df.where(pd.notnull(df), None)
+    df["dataset_id"] = dataset.id
 
-    records = []
-    for _, row in df.iterrows():
-        records.append(
-            {
-                "dataset_id": dataset.id,
-                "uid": int(row["uid"]) if row["uid"] is not None else None,
-                "product_id": row["product_id"],
-                "type": row["type"],
-                "air_temperature_k": float(row["air_temperature_k"]) if row["air_temperature_k"] is not None else None,
-                "process_temperature_k": float(row["process_temperature_k"]) if row["process_temperature_k"] is not None else None,
-                "rotational_speed_rpm": float(row["rotational_speed_rpm"]) if row["rotational_speed_rpm"] is not None else None,
-                "torque_nm": float(row["torque_nm"]) if row["torque_nm"] is not None else None,
-                "tool_wear_min": float(row["tool_wear_min"]) if row["tool_wear_min"] is not None else None,
-                "machine_failure": int(row["machine_failure"]) if row["machine_failure"] is not None else 0,
-                "twf": int(row["twf"]) if row["twf"] is not None else 0,
-                "hdf": int(row["hdf"]) if row["hdf"] is not None else 0,
-                "pwf": int(row["pwf"]) if row["pwf"] is not None else 0,
-                "osf": int(row["osf"]) if row["osf"] is not None else 0,
-                "rnf": int(row["rnf"]) if row["rnf"] is not None else 0,
-            }
-        )
+    records = df[_RECORD_COLS].to_dict("records")
 
-    db.bulk_insert_mappings(MachineRecord, records)
+    db.execute(sa_insert(MachineRecord), records)
     db.commit()
 
     return {
@@ -110,3 +106,34 @@ def get_datasets(db: Session = Depends(get_db)):
         }
         for d in datasets
     ]
+
+
+@router.delete("/{dataset_id}")
+def delete_dataset(dataset_id: int, db: Session = Depends(get_db)):
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+
+    if not dataset:
+        raise HTTPException(status_code=404, detail="해당 dataset이 없습니다.")
+
+    target_file_name = dataset.file_name
+
+    try:
+        deleted_records_count = (
+            db.query(MachineRecord)
+            .filter(MachineRecord.dataset_id == dataset_id)
+            .delete(synchronize_session=False)
+        )
+
+        db.delete(dataset)
+        db.commit()
+
+        return {
+            "message": "Dataset deleted successfully",
+            "dataset_id": dataset_id,
+            "file_name": target_file_name,
+            "deleted_records_count": deleted_records_count,
+        }
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="삭제 중 오류가 발생했습니다.")

@@ -1,10 +1,11 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from app.database import engine, SessionLocal
+from app.database import engine, get_db
 from app import db_models
-from app.routers import dataset, dashboard, analysis
+from app.routers import dataset, dashboard, analysis, predict
 
 app = FastAPI()
 
@@ -25,6 +26,8 @@ app.add_middleware(
 app.include_router(dataset.router)
 app.include_router(dashboard.router)
 app.include_router(analysis.router)
+app.include_router(predict.router)
+
 
 @app.get("/")
 def root():
@@ -32,12 +35,8 @@ def root():
 
 
 @app.get("/health")
-def health_check():
-    db = SessionLocal()
-    try:
-        db.execute(text("SELECT 1"))
-        return {"status": "ok", "database": "connected"}
-    finally:
-        db.close()
+def health_check(db: Session = Depends(get_db)):
+    db.execute(text("SELECT 1"))
+    return {"status": "ok", "database": "connected"}
 
 

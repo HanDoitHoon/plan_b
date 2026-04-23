@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 가상환경
+backend/.venv/
+
+# 환경변수 (절대 올리면 안 됨)
+backend/.env
+
+# 학습된 모델 아티팩트 (용량이 커서 제외)
+backend/app/ml/artifacts/
+
+# DB
+*.db
+*.sqlite3
+
+# Node
+frontend/node_modules/
+
+# 빌드 결과물
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
