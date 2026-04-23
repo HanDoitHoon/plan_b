@@ -157,10 +157,10 @@ Chat GPT의 도움을 받아 필요한 기능을 생성하였고, Claude Code를
 --------------------------------------------------
 기술 스택
 
-│ Backend	 │ Python, FastAPI, SQLAlchemy 2.x
-│ Database │ MySQL (PyMySQL)
-│ ML	     │ scikit-learn, pandas, joblib
-│ Frontend │ React (Vite)
+│ Backend : Python, FastAPI, SQLAlchemy 2.x │
+│ Database : MySQL (PyMySQL) │
+│ ML : scikit-learn, pandas, joblib │
+│ Frontend : React (Vite) │
 --------------------------------------------------
 
 주요 기능 - 스크린샷과 함께
