@@ -1,4 +1,4 @@
-# plan_b — 예지보전 웹 애플리케이션
+# FactoryLens — 웹 애플리케이션
 
 AI4I 2020 데이터셋을 활용하여 설비 센서 데이터를 시각화하고,  
 RandomForestClassifier로 고장 여부를 예측하는 풀스택 토이프로젝트입니다.
