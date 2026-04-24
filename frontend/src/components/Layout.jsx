@@ -13,7 +13,7 @@ export default function Layout({ children }) {
     return (
         <div style={styles.wrapper}>
             <aside style={styles.sidebar}>
-                <h2 style={styles.logo}>Plan_B</h2>
+                <h2 style={styles.logo}>FactoryLens</h2>
                 <nav style={styles.nav}>
                     {menus.map((menu) => (
                         <Link
