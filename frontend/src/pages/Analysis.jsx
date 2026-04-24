@@ -17,13 +17,13 @@ const SENSOR_OPTIONS = [
   { value: "torque_nm", label: "Torque [Nm]" },
   { value: "tool_wear_min", label: "Tool wear [min]" },
 ];
+
 function getYAxisDomain(stats) {
   if (!stats) return [0, 100];
 
   const min = stats.min;
   const max = stats.max;
   const range = max - min;
-
   const padding = range === 0 ? Math.max(min * 0.05, 1) : range * 0.1;
 
   return [
@@ -32,13 +32,15 @@ function getYAxisDomain(stats) {
   ];
 }
 
-
 export default function Analysis() {
   const [datasets, setDatasets] = useState([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [failureFilter, setFailureFilter] = useState("all");
   const [sensor, setSensor] = useState("torque_nm");
+  const [displayCount, setDisplayCount] = useState("500");
+  const [startIndex, setStartIndex] = useState("");
+  const [endIndex, setEndIndex] = useState("");
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -64,7 +66,6 @@ export default function Analysis() {
       const params = new URLSearchParams();
       params.append("dataset_id", selectedDatasetId);
       params.append("sensor", sensor);
-      params.append("limit", "500");
 
       if (typeFilter !== "all") {
         params.append("type_filter", typeFilter);
@@ -72,6 +73,20 @@ export default function Analysis() {
 
       if (failureFilter !== "all") {
         params.append("failure", failureFilter);
+      }
+
+      // 범위 입력이 있으면 범위 우선
+      if (startIndex !== "") {
+        params.append("start_index", startIndex);
+      }
+
+      if (endIndex !== "") {
+        params.append("end_index", endIndex);
+      }
+
+      // 범위 입력이 없을 때만 표시 개수(limit) 사용
+      if (startIndex === "" && endIndex === "" && displayCount !== "all") {
+        params.append("limit", displayCount);
       }
 
       const res = await api.get(`/api/analysis/records?${params.toString()}`);
@@ -92,7 +107,15 @@ export default function Analysis() {
     if (selectedDatasetId) {
       fetchAnalysisData();
     }
-  }, [selectedDatasetId, typeFilter, failureFilter, sensor]);
+  }, [
+    selectedDatasetId,
+    typeFilter,
+    failureFilter,
+    sensor,
+    displayCount,
+    startIndex,
+    endIndex,
+  ]);
 
   return (
     <div>
@@ -157,10 +180,49 @@ export default function Analysis() {
               ))}
             </select>
           </label>
+
+          <label>
+            표시 개수:
+            <select
+              value={displayCount}
+              onChange={(e) => setDisplayCount(e.target.value)}
+              style={styles.select}
+              disabled={startIndex !== "" || endIndex !== ""}
+            >
+              <option value="100">100</option>
+              <option value="300">300</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+              <option value="3000">3000</option>
+              <option value="all">전체</option>
+            </select>
+          </label>
+
+          <label>
+            시작 index:
+            <input
+              type="number"
+              value={startIndex}
+              onChange={(e) => setStartIndex(e.target.value)}
+              style={styles.input}
+              placeholder="예: 140100"
+            />
+          </label>
+
+          <label>
+            끝 index:
+            <input
+              type="number"
+              value={endIndex}
+              onChange={(e) => setEndIndex(e.target.value)}
+              style={styles.input}
+              placeholder="예: 140400"
+            />
+          </label>
         </div>
       </div>
 
-      {loading && <p>불러오는 중...</p>}
+      {loading && <p style={{ marginTop: "16px" }}>불러오는 중...</p>}
 
       {analysisData && (
         <>
@@ -180,15 +242,15 @@ export default function Analysis() {
             </p>
 
             <div style={{ width: "100%", height: 420 }}>
-                <ResponsiveContainer>
-                    <LineChart data={analysisData.values}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="index" />
-                        <YAxis domain={getYAxisDomain(analysisData.stats)} />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="value" dot={false} stroke="#2563eb" />
-                    </LineChart>
-                </ResponsiveContainer>
+              <ResponsiveContainer>
+                <LineChart data={analysisData.values}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="index" />
+                  <YAxis domain={getYAxisDomain(analysisData.stats)} />
+                  <Tooltip formatter={(value) => Number(value).toFixed(4)} />
+                  <Line type="monotone" dataKey="value" dot={false} stroke="#2563eb" />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </>
@@ -223,6 +285,11 @@ const styles = {
   select: {
     marginLeft: "8px",
     padding: "6px 8px",
+  },
+  input: {
+    marginLeft: "8px",
+    padding: "6px 8px",
+    width: "120px",
   },
   grid: {
     display: "grid",

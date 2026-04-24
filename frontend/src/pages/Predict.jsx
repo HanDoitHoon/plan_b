@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/client";
 
 export default function Predict() {
@@ -12,7 +12,21 @@ export default function Predict() {
   });
 
   const [result, setResult] = useState(null);
+  const [modelMetrics, setModelMetrics] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const fetchModelMetrics = async () => {
+    try {
+      const res = await api.get("/api/model/metrics");
+      setModelMetrics(res.data);
+    } catch (err) {
+      console.error("모델 metric 조회 실패:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchModelMetrics();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,26 +39,18 @@ export default function Predict() {
   const handlePredict = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      type: form.type,
-      air_temperature_k: Number(form.air_temperature_k),
-      process_temperature_k: Number(form.process_temperature_k),
-      rotational_speed_rpm: Number(form.rotational_speed_rpm),
-      torque_nm: Number(form.torque_nm),
-      tool_wear_min: Number(form.tool_wear_min),
-    };
-
-    const hasNaN = Object.entries(payload)
-      .filter(([key]) => key !== "type")
-      .some(([, val]) => isNaN(val));
-
-    if (hasNaN) {
-      alert("모든 숫자 필드에 유효한 값을 입력해주세요.");
-      return;
-    }
-
     try {
       setLoading(true);
+
+      const payload = {
+        type: form.type,
+        air_temperature_k: Number(form.air_temperature_k),
+        process_temperature_k: Number(form.process_temperature_k),
+        rotational_speed_rpm: Number(form.rotational_speed_rpm),
+        torque_nm: Number(form.torque_nm),
+        tool_wear_min: Number(form.tool_wear_min),
+      };
+
       const res = await api.post("/api/predict", payload);
       setResult(res.data);
     } catch (err) {
@@ -59,12 +65,28 @@ export default function Predict() {
     <div>
       <h1>Predict</h1>
       <p>센서값을 입력하면 고장 여부와 확률을 예측한다.</p>
-
+        {modelMetrics && (
+        <div style={styles.metricsWrapper}>
+          <h2>현재 모델 평가 지표</h2>
+          <div style={styles.metricsGrid}>
+            <MetricCard title="Accuracy" value={modelMetrics.metrics.accuracy} />
+            <MetricCard title="Precision" value={modelMetrics.metrics.precision} />
+            <MetricCard title="Recall" value={modelMetrics.metrics.recall} />
+            <MetricCard title="F1 Score" value={modelMetrics.metrics.f1} />
+            <MetricCard title="ROC-AUC" value={modelMetrics.metrics.roc_auc} />
+          </div>
+        </div>)}
+        
       <form style={styles.card} onSubmit={handlePredict}>
         <div style={styles.grid}>
           <label>
             Type
-            <select name="type" value={form.type} onChange={handleChange} style={styles.input}>
+            <select
+              name="type"
+              value={form.type}
+              onChange={handleChange}
+              style={styles.input}
+            >
               <option value="L">L</option>
               <option value="M">M</option>
               <option value="H">H</option>
@@ -74,8 +96,6 @@ export default function Predict() {
           <label>
             Air temperature [K]
             <input
-              type="number"
-              step="any"
               name="air_temperature_k"
               value={form.air_temperature_k}
               onChange={handleChange}
@@ -86,8 +106,6 @@ export default function Predict() {
           <label>
             Process temperature [K]
             <input
-              type="number"
-              step="any"
               name="process_temperature_k"
               value={form.process_temperature_k}
               onChange={handleChange}
@@ -98,8 +116,6 @@ export default function Predict() {
           <label>
             Rotational speed [rpm]
             <input
-              type="number"
-              step="any"
               name="rotational_speed_rpm"
               value={form.rotational_speed_rpm}
               onChange={handleChange}
@@ -110,8 +126,6 @@ export default function Predict() {
           <label>
             Torque [Nm]
             <input
-              type="number"
-              step="any"
               name="torque_nm"
               value={form.torque_nm}
               onChange={handleChange}
@@ -122,8 +136,6 @@ export default function Predict() {
           <label>
             Tool wear [min]
             <input
-              type="number"
-              step="any"
               name="tool_wear_min"
               value={form.tool_wear_min}
               onChange={handleChange}
@@ -145,6 +157,17 @@ export default function Predict() {
           <p><b>고장 확률:</b> {(result.failure_probability * 100).toFixed(2)}%</p>
         </div>
       )}
+
+
+    </div>
+  );
+}
+
+function MetricCard({ title, value }) {
+  return (
+    <div style={styles.metricCard}>
+      <div style={styles.metricTitle}>{title}</div>
+      <div style={styles.metricValue}>{value}</div>
     </div>
   );
 }
@@ -178,5 +201,33 @@ const styles = {
     color: "white",
     borderRadius: "8px",
     cursor: "pointer",
+  },
+  metricsWrapper: {
+    background: "white",
+    padding: "20px",
+    borderRadius: "12px",
+    marginTop: "20px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+  },
+  metricsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(5, 1fr)",
+    gap: "16px",
+    marginTop: "16px",
+  },
+  metricCard: {
+    background: "#f9fafb",
+    padding: "16px",
+    borderRadius: "10px",
+    border: "1px solid #e5e7eb",
+  },
+  metricTitle: {
+    fontSize: "13px",
+    color: "#6b7280",
+    marginBottom: "6px",
+  },
+  metricValue: {
+    fontSize: "24px",
+    fontWeight: "700",
   },
 };
