@@ -21,7 +21,9 @@ def get_analysis_records(
     sensor: str,
     type_filter: str | None = Query(default=None),
     failure: int | None = Query(default=None),
-    limit: int = Query(default=500, ge=1, le=3000),
+    limit: int | None = Query(default=None, ge=1, le=10000),
+    start_index: int | None = Query(default=None),
+    end_index: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
     if sensor not in ALLOWED_SENSORS:
@@ -35,12 +37,24 @@ def get_analysis_records(
     if failure is not None:
         query = query.filter(MachineRecord.machine_failure == failure)
 
+    # 범위 지정이 있으면 index(id) 기준으로 필터
+    if start_index is not None:
+        query = query.filter(MachineRecord.id >= start_index)
+
+    if end_index is not None:
+        query = query.filter(MachineRecord.id <= end_index)
+
     total_filtered_count = query.count()
 
     if total_filtered_count == 0:
         raise HTTPException(status_code=404, detail="조건에 맞는 데이터가 없습니다.")
 
-    records = query.order_by(MachineRecord.id.asc()).limit(limit).all()
+    query = query.order_by(MachineRecord.id.asc())
+
+    if limit is not None:
+        query = query.limit(limit)
+
+    records = query.all()
 
     values = []
     for i, record in enumerate(records):
@@ -71,6 +85,10 @@ def get_analysis_records(
         "failure_filter": failure if failure is not None else "all",
         "total_filtered_count": total_filtered_count,
         "returned_count": len(values),
+        "range": {
+            "start_index": start_index,
+            "end_index": end_index,
+        },
         "stats": {
             "min": round(min(numeric_values), 4),
             "max": round(max(numeric_values), 4),

@@ -20,6 +20,21 @@ def load_model_bundle():
     return _model_bundle
 
 
+
+def get_model_metrics():
+    bundle = load_model_bundle()
+
+    return {
+        "dataset_id": bundle.get("dataset_id"),
+        "feature_columns": bundle.get("feature_columns", []),
+        "metrics": bundle.get("metrics", {}),
+    }
+
+
+
+
+
+
 def predict_failure(payload: dict):
     bundle = load_model_bundle()
     model = bundle["model"]
